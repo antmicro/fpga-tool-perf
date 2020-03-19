@@ -1,0 +1,31 @@
+{
+    "srcs": [
+	"src/hamsternz-hdmi-example/symbol_dump.vhd",
+	"src/hamsternz-hdmi-example/line_delay.vhd",
+	"src/hamsternz-hdmi-example/pixel_processing.vhd",
+	"src/hamsternz-hdmi-example/tmds_decoder.vhd",
+	"src/hamsternz-hdmi-example/expand_422_to_444.vhd",
+	"src/hamsternz-hdmi-example/edid_rom.vhd",
+	"src/hamsternz-hdmi-example/hdmi_input.vhd",
+	"src/hamsternz-hdmi-example/extract_video_infopacket_data.vhd",
+	"src/hamsternz-hdmi-example/audio_to_db.vhd",
+	"src/hamsternz-hdmi-example/hdmi_design.vhd",
+	"src/hamsternz-hdmi-example/guidelines.vhd",
+	"src/hamsternz-hdmi-example/alignment_detect.vhd",
+	"src/hamsternz-hdmi-example/serialiser_10_to_1.vhd",
+	"src/hamsternz-hdmi-example/deserialiser_1_to_10.vhd",
+	"src/hamsternz-hdmi-example/detect_interlace.vhd",
+	"src/hamsternz-hdmi-example/tmds_encoder.vhd",
+	"src/hamsternz-hdmi-example/dvid_output.vhd",
+	"src/hamsternz-hdmi-example/hdmi_io.vhd",
+	"src/hamsternz-hdmi-example/conversion_to_RGB.vhd",
+	"src/hamsternz-hdmi-example/extract_audio_samples.vhd",
+	"src/hamsternz-hdmi-example/edge_enhance.vhd",
+	"src/hamsternz-hdmi-example/audio_meters.vhd",
+	"src/hamsternz-hdmi-example/input_channel.vhd"
+
+        ],
+    "top": "hdmi_design",
+    "name": "hamsternz-hdmi-example"
+}
+
