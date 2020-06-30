@@ -5,6 +5,7 @@ import os
 import glob
 import time
 import re
+import logging
 from terminaltables import AsciiTable
 from colorclass import Color
 
@@ -96,8 +97,8 @@ def main():
     )
     parser.add_argument(
         '--out-prefix',
-        default='build',
-        help='output directory prefix (default: build)'
+        default='build/_exhaust-runs',
+        help='output directory prefix (default: build/_exhaust-runs)'
     )
     parser.add_argument(
         '--build_type',
@@ -115,11 +116,15 @@ def main():
     )
 
     args = parser.parse_args()
+    if args.verbose:
+        logging.basicConfig(format='%(message)s', level=logging.DEBUG)
+    logging.debug("Parsing Arguments........")
 
     tasks = Tasks(src_dir)
 
     args_dict = {"project": args.project, "toolchain": args.toolchain}
 
+    logging.debug("\nGetting Tasks............")
     task_list = tasks.get_tasks(args_dict)
 
     params_file = args.parameters
@@ -138,9 +143,12 @@ def main():
         task_list, args.verbose, args.out_prefix, root_dir, args.build_type,
         args.build, params_strings
     )
+    logging.debug("\nRunning Project..........") 
     runner.run()
+    logging.debug("\nCollecting Results.......")
     runner.collect_results()
 
+    logging.debug("\nPrinting Summary Table...")
     result = print_summary_table(args.out_prefix, args.build_type, args.build)
 
     if not result and args.fail:
