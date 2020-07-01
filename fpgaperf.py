@@ -34,6 +34,7 @@ root_dir = os.path.dirname(os.path.abspath(__file__))
 project_dir = os.path.join(root_dir, 'project')
 src_dir = os.path.join(root_dir, 'src')
 
+logger = logging.getLogger(__name__)
 
 class NotAvailable:
     pass
@@ -172,7 +173,7 @@ def run(
     t.carry = carry
 
     # Constraint files shall be in their directories
-    logging.debug("\nGetting Constraints......")
+    logger.debug("Getting Constraints")
     pcf = get_constraint(
         project, board, project_dict['toolchains'][toolchain][board], 'pcf'
     )
@@ -189,7 +190,7 @@ def run(
     t.xdc = os.path.realpath(xdc) if xdc else None
     t.build = build
     t.build_type = build_type
-    logging.debug("\nStarting Project.........")
+    logger.debug("Starting Project")
     t.project(
         project_dict,
         family,
@@ -202,11 +203,11 @@ def run(
         out_prefix=out_prefix,
     )
 
-    logging.debug("\nRunning Project..........")
+    logger.debug("Running Project")
     t.run()
-    logging.debug("\nPrinting Stats...........")
+    logger.debug("Printing Stats")
     print_stats(t)
-    logging.debug("\nWriting Metadata.........\n")
+    logger.debug("Writing Metadata")
     t.write_metadata()
 
 
@@ -361,23 +362,31 @@ def main():
     parser.add_argument('--build', default=None, help='Build number')
     parser.add_argument('--build_type', default=None, help='Build type')
     args = parser.parse_args()
+
     if args.verbose:
-        logging.basicConfig(format='%(message)s', level=logging.DEBUG)
-    logging.debug("Parsing Arguments........")
+        global logger
+        logger = logging.getLogger('MyLogger')
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(levelname)s: %(message)s')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
+
+    logger.debug("Parsing Arguments")
 
     assert not (args.params_file and args.params_string)
 
     if args.list_toolchains:
-        logging.debug("\nListing Toolchains.......")
+        logger.debug("Listing Toolchains")
         list_toolchains()
     elif args.list_projects:
-        logging.debug("\nListing Projects.........")
+        logger.debug("Listing Projects")
         list_projects()
     elif args.list_seedable:
-        logging.debug("\nListing Seedables........")
+        logger.debug("Listing Seedables")
         list_seedable()
     elif args.check_env:
-        logging.debug("\nChecking Environment.....")
+        logger.debug("Checking Environment")
         check_env(args.toolchain)
     else:
         argument_errors = []
@@ -393,8 +402,8 @@ def main():
             for e in argument_errors:
                 print('{}: error: {}'.format(sys.argv[0], e))
             sys.exit(1)
-        
-        logging.debug("\nContinuing...............")
+
+        logger.debug("Continuing")
         seed = int(args.seed, 0) if args.seed else None
         run(
             args.board,
