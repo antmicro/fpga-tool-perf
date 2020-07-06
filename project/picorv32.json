@@ -1,22 +1,25 @@
 {
-    "srcs": [
-        "third_party/picorv32/picorv32.v",
-        "src/picorv32/picorv32_wrap.v"
-    ],
+    "core": ":symbiflow:picorv32:0-r1",
     "top": "top",
     "name": "picorv32-wrap",
     "toolchains": {
+        "vpr": {
+            "boards": [
+                "arty",
+                "zybo"
+            ]
+        },
         "vivado": {
-            "arty": ["arty.xdc"],
-            "zybo": ["zybo.xdc"]
+            "boards": [
+                "arty",
+                "zybo"
+            ]
         },
         "vivado-yosys": {
-            "arty": ["arty.xdc"],
-            "zybo": ["zybo.xdc"]
-        },
-        "vpr": {
-            "arty": ["arty.pcf"],
-            "zybo": ["zybo.pcf"]
+            "boards": [
+                "arty",
+                "zybo"
+            ]
         }
     }
 }
