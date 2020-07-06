@@ -11,6 +11,7 @@ import datetime
 import asciitable
 import edalize
 import glob
+import yaml
 
 from toolchain import Toolchain
 from utils import Timed, get_vivado_max_freq, have_exec
@@ -69,57 +70,43 @@ class Vivado(Toolchain):
     def run(self):
         with Timed(self, 'prepare'):
             os.makedirs(self.out_dir, exist_ok=True)
-            for f in self.srcs:
-                if f.endswith(".vhd") or f.endswith(".vhdl"):
-                    self.files.append(
-                        {
-                            'name': os.path.realpath(f),
-                            'file_type': 'vhdlSource'
-                        }
-                    )
-                elif f.endswith(".v"):
-                    self.files.append(
-                        {
-                            'name': os.path.realpath(f),
-                            'file_type': 'verilogSource'
-                        }
-                    )
 
-            self.files.append(
-                {
-                    'name': os.path.realpath(self.xdc),
-                    'file_type': 'xdc'
-                }
-            )
+            constr = list()
+            if not self.xdc is None:
+                # Constraints outside FuseSoC library specified in JSON
+                constr.append(
+                    {
+                        'name': os.path.realpath(self.xdc),
+                        'file_type': 'xdc'
+                    }
+                )
+
+            if len(constr) > 0:
+                self.edam['files'].extend(constr)
 
             chip = self.family + self.device + self.package
 
             vivado_settings = os.getenv('VIVADO_SETTINGS')
-
-            self.edam = {
-                'files': self.files,
-                'name': self.project_name,
-                'toplevel': self.top,
-                'parameters':
+            vivado_param = {
+                'paramtype': 'vlogdefine',
+                'datatype': 'int',
+                'default': 1,
+            }
+            tool_options = {
+                'vivado':
                     {
-                        'VIVADO':
-                            {
-                                'paramtype': 'vlogdefine',
-                                'datatype': 'int',
-                                'default': 1,
-                            },
-                    },
-                'tool_options':
-                    {
-                        'vivado':
-                            {
-                                'part': chip,
-                                'synth': self.synthtool,
-                                'vivado-settings': vivado_settings,
-                                'yosys_synth_options': self.synthoptions,
-                            }
+                        'part': chip,
+                        'synth': self.synthtool,
+                        'vivado-settings': vivado_settings,
+                        'yosys_synth_options': self.synthoptions,
                     }
             }
+
+            self.edam['parameters']['VIVADO'] = vivado_param
+            self.edam['tool_options'] = tool_options
+
+            with open('%s/%s.yml' % (self.out_dir, self.top), 'w') as yml:
+                yaml.dump(self.edam, yml)
 
             self.backend = edalize.get_edatool('vivado')(
                 edam=self.edam, work_root=self.out_dir
