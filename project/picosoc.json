@@ -1,23 +1,22 @@
 {
-    "srcs": [
-        "third_party/picorv32/picorv32.v",
-        "third_party/picorv32/picosoc/spimemio.v",
-        "third_party/picorv32/picosoc/simpleuart.v",
-        "src/picosoc/picosoc_wrap.v",
-        "src/picosoc/picosoc_noflash.v",
-        "src/picosoc/progmem.v"
-    ],
+    "core": ":symbiflow:picosoc",
     "top": "top",
     "name": "picosoc-wrap",
     "toolchains": {
         "vpr": {
-            "basys3": ["basys3.pcf", "basys3.sdc"]
+            "boards": [
+                "basys3"
+            ]
         },
         "vivado": {
-            "basys3": ["basys3.xdc"]
+            "boards": [
+                "basys3"
+            ]
         },
         "vivado-yosys": {
-            "basys3": ["basys3.xdc"]
+            "boards": [
+                "basys3"
+            ]
         }
     }
 }
