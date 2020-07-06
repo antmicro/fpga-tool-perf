@@ -3,6 +3,7 @@ import re
 import subprocess
 
 import edalize
+import yaml
 
 from toolchain import Toolchain
 from utils import Timed, get_vivado_max_freq, have_exec
@@ -34,36 +35,36 @@ class VPR(Toolchain):
             with Timed(self, 'prepare'):
                 os.makedirs(self.out_dir, exist_ok=True)
 
-                for f in self.srcs:
-                    self.files.append(
-                        {
-                            'name': os.path.realpath(f),
-                            'file_type': 'verilogSource'
-                        }
-                    )
-
-                if self.pcf:
-                    self.files.append(
+                constr = list()
+                if not self.pcf is None:
+                    # Constraints outside FuseSoC library specified in JSON
+                    constr.append(
                         {
                             'name': os.path.realpath(self.pcf),
                             'file_type': 'PCF'
                         }
                     )
-                if self.sdc:
-                    self.files.append(
+
+                if not self.sdc is None:
+                    # Constraints outside FuseSoC library specified in JSON
+                    constr.append(
                         {
                             'name': os.path.realpath(self.sdc),
                             'file_type': 'SDC'
                         }
                     )
 
-                if self.xdc:
-                    self.files.append(
+                if not self.xdc is None:
+                    # Constraints outside FuseSoC library specified in JSON
+                    constr.append(
                         {
                             'name': os.path.realpath(self.xdc),
                             'file_type': 'xdc'
                         }
                     )
+
+                if len(constr) > 0:
+                    self.edam['files'].extend(constr)
 
                 chip = self.family + self.device
 
@@ -84,52 +85,48 @@ class VPR(Toolchain):
                         '{}_test'.format(chip_replace)
                     )
 
-                    self.files.append(
-                        {
-                            'name':
-                                os.path.realpath(
-                                    os.path.join(
-                                        device_path, '*rr_graph.real.bin'
-                                    )
-                                ),
-                            'file_type':
-                                'RRGraph'
-                        }
-                    )
+                    rrgraph = {
+                        'name':
+                            os.path.realpath(
+                                os.path.join(
+                                    device_path, '*rr_graph.real.bin'
+                                )
+                            ),
+                        'file_type':
+                            'RRGraph'
+                    }
+                    self.edam['files'].append(rrgraph)
 
-                    self.files.append(
-                        {
-                            'name':
-                                os.path.realpath(
-                                    os.path.join(
-                                        device_path, 'vpr_grid_map.csv'
-                                    )
-                                ),
-                            'file_type':
-                                'VPRGrid'
-                        }
-                    )
+                    grid = {
+                        'name':
+                            os.path.realpath(
+                                os.path.join(
+                                    device_path, 'vpr_grid_map.csv'
+                                )
+                            ),
+                        'file_type':
+                            'VPRGrid'
+                    }
 
-                self.edam = {
-                    'files': self.files,
-                    'name': self.project_name,
-                    'toplevel': self.top,
-                    'tool_options':
+                tool_options = {
+                    'symbiflow':
                         {
-                            'symbiflow':
-                                {
-                                    'part': chip,
-                                    'package': self.package,
-                                    'vendor': 'xilinx',
-                                    'builddir': '.',
-                                    'pnr': 'vpr',
-                                    'options': tool_params,
-                                    'fasm2bels': self.fasm2bels,
-                                    'dbroot': self.dbroot,
-                                    'clocks': self.clocks,
-                                }
+                            'part': chip,
+                            'package': self.package,
+                            'vendor': 'xilinx',
+                            'builddir': '.',
+                            'pnr': 'vpr',
+                            'options': tool_params,
+                            'fasm2bels': self.fasm2bels,
+                            'dbroot': self.dbroot,
+                            'clocks': self.clocks,
                         }
                 }
+                self.edam['tool_options'] = tool_options
+
+                with open('%s/%s.yml' % (self.out_dir, self.top), 'w') as yml:
+                    yaml.dump(self.edam, yml)
+
                 self.backend = edalize.get_edatool('symbiflow')(
                     edam=self.edam, work_root=self.out_dir
                 )
@@ -479,29 +476,27 @@ class NextpnrXilinx(Toolchain):
             with Timed(self, 'prepare'):
                 os.makedirs(self.out_dir, exist_ok=True)
 
-                for f in self.srcs:
-                    self.files.append(
-                        {
-                            'name': os.path.realpath(f),
-                            'file_type': 'verilogSource'
-                        }
-                    )
-
-                if self.xdc:
-                    self.files.append(
+                constr = list()
+                if not self.xdc is None:
+                    # Constraints outside FuseSoC library specified in JSON
+                    constr.append(
                         {
                             'name': os.path.realpath(self.xdc),
                             'file_type': 'xdc'
                         }
                     )
 
-                if self.pcf:
-                    self.files.append(
+                if not self.pcf is None:
+                    # Constraints outside FuseSoC library specified in JSON
+                    constr.append(
                         {
                             'name': os.path.realpath(self.pcf),
                             'file_type': 'PCF'
                         }
                     )
+
+                if len(constr) > 0:
+                    self.edam['files'].extend(constr)
 
                 chip = self.family + self.device
 
@@ -510,12 +505,11 @@ class NextpnrXilinx(Toolchain):
                     'share', 'nextpnr-xilinx',
                     '{}{}.bin'.format(self.family, self.part)
                 )
-                self.files.append(
-                    {
-                        'name': os.path.realpath(chipdb),
-                        'file_type': 'bba'
-                    }
-                )
+                db = {
+                    'name': os.path.realpath(chipdb),
+                    'file_type': 'bba'
+                }
+                self.edam['files'].append(db)
 
                 if self.fasm2bels:
                     symbiflow = os.getenv('SYMBIFLOW', None)
@@ -532,56 +526,53 @@ class NextpnrXilinx(Toolchain):
                         '{}_test'.format(chip_replace)
                     )
 
-                    self.files.append(
-                        {
-                            'name':
-                                os.path.realpath(
-                                    os.path.join(
-                                        device_path, '*rr_graph.real.bin'
-                                    )
-                                ),
-                            'file_type':
-                                'RRGraph'
-                        }
-                    )
+                    rrgraph = {
+                        'name':
+                            os.path.realpath(
+                                os.path.join(
+                                    device_path, '*rr_graph.real.bin'
+                                )
+                            ),
+                        'file_type':
+                            'RRGraph'
+                    }
+                    self.edam['files'].append(rrgraph)
 
-                    self.files.append(
-                        {
-                            'name':
-                                os.path.realpath(
-                                    os.path.join(
-                                        device_path, 'vpr_grid_map.csv'
-                                    )
-                                ),
-                            'file_type':
-                                'VPRGrid'
-                        }
-                    )
+                    grid = {
+                        'name':
+                            os.path.realpath(
+                                os.path.join(
+                                    device_path, 'vpr_grid_map.csv'
+                                )
+                            ),
+                        'file_type':
+                            'VPRGrid'
+                    }
+                    self.edam['files'].append(grid)
 
-                self.edam = {
-                    'files': self.files,
-                    'name': self.project_name,
-                    'toplevel': self.top,
-                    'tool_options':
-                        {
-                            'symbiflow':
-                                {
-                                    'part': chip,
-                                    'package': self.package,
-                                    'vendor': 'xilinx',
-                                    'builddir': '.',
-                                    'pnr': 'nextpnr',
-                                    'yosys_synth_options':
-                                        [
-                                            "-flatten", "-nowidelut", "-abc9",
-                                            "-arch xc7"
-                                        ],
-                                    'fasm2bels': self.fasm2bels,
-                                    'dbroot': self.dbroot,
-                                    'clocks': self.clocks,
-                                }
-                        }
-                }
+                    tool_options = {
+                        'symbiflow':
+                            {
+                                'part': chip,
+                                'package': self.package,
+                                'vendor': 'xilinx',
+                                'builddir': '.',
+                                'pnr': 'nextpnr',
+                                'yosys_synth_options':
+                                    [
+                                        "-flatten", "-nowidelut", "-abc9",
+                                        "-arch xc7"
+                                    ],
+                                'fasm2bels': self.fasm2bels,
+                                'dbroot': self.dbroot,
+                                'clocks': self.clocks,
+                            }
+                    }
+                    self.edam['tool_options'] = tool_options
+
+                with open('%s/%s.yml' % (self.out_dir, self.top), 'w') as yml:
+                    yaml.dump(self.edam, yml)
+
                 self.backend = edalize.get_edatool('symbiflow')(
                     edam=self.edam, work_root=self.out_dir
                 )
