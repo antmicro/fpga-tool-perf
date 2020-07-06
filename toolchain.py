@@ -8,7 +8,9 @@ import shutil
 import sys
 import glob
 import datetime
+import yaml
 from utils import Timed
+from fusesoc.vlnv import Vlnv
 
 
 class Toolchain:
@@ -22,6 +24,7 @@ class Toolchain:
         self.rootdir = rootdir
         self.runtimes = collections.OrderedDict()
         self.toolchain = None
+        self.flow = None
         self.verbose = False
         self.cmds = []
         self.pcf = None
@@ -45,6 +48,8 @@ class Toolchain:
         self.project_name = None
         self.srcs = None
         self.top = None
+        self.core = None
+        self.yaml_file = None
         self.out_dir = None
         self.clocks = None
 
@@ -52,7 +57,20 @@ class Toolchain:
             subprocess.check_call("true", shell=True, cwd=self.out_dir)
 
     def canonicalize(self, fns):
-        return [os.path.realpath(self.rootdir + '/' + fn) for fn in fns]
+        if type(fns) == list:
+            gen = [os.path.realpath(self.rootdir + '/' + fn) for fn in fns]
+            paths = list()
+            for p in gen:
+                paths.append(glob.glob(p)[0])
+        else:
+            paths = os.path.realpath(self.rootdir + '/' + fns)
+        return paths
+
+    def extract_fusesoc_root_dir(self):
+        splited = os.path.split(self.yaml_file)
+        while not os.path.exists(os.path.join(splited[0], 'src')):
+            splited = os.path.split(splited[0])
+        return splited[0]
 
     def optstr(self):
         tokens = []
@@ -173,11 +191,32 @@ class Toolchain:
         self.params_string = params_string
 
         self.project_name = project['name']
-        self.srcs = self.canonicalize(project['srcs'])
-        for src in self.srcs:
-            if not os.path.exists(src):
-                raise ValueError("Missing source file %s" % src)
         self.top = project['top']
+        self.core = project['core']
+        vlnv = Vlnv(self.core)
+        yaml_path = os.path.join('build', vlnv.sanitized_name,
+                                      '%s-%s' % (self.board, self.flow),
+                                      '%s.eda.yml' % (vlnv.sanitized_name))
+        self.yaml_file = self.canonicalize(yaml_path)
+        with open(self.yaml_file, 'r') as yml:
+            self.edam = yaml.load(yml, Loader=yaml.FullLoader)
+        self.fusesoc_root_dir = self.extract_fusesoc_root_dir()
+        # Fix sources paths from YAML to absolute paths
+        self.srcs = list()
+        for i, f in enumerate(self.edam['files']):
+            if 'src' in f['name']:
+                # Sources have relative path begining with: '../src'
+                self.edam['files'][i]['name'] = \
+                    os.path.join(self.fusesoc_root_dir,
+                                 'src', f['name'].split('src/')[1])
+                self.srcs.append(self.edam['files'][i]['name'])
+            else:
+                # Other files specified in yml
+                path = os.path.join(self.fusesoc_root_dir, '*', f['name'])
+                self.edam['files'][i]['name'] = glob.glob(path)[0]
+
+        self.edam['name'] = project['name']
+        self.edam['toplevel'] = project['top']
 
         if 'clocks' in project:
             self.clocks = project['clocks']

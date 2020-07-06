@@ -27,6 +27,7 @@ from radiant import RadiantLSE
 from icecube import Icecube2Synpro
 from icecube import Icecube2LSE
 from icecube import Icecube2Yosys
+from fusesoc_manager import FuseSoCManager
 
 # to find data files
 root_dir = os.path.dirname(os.path.abspath(__file__))
@@ -160,6 +161,7 @@ def run(
     package = board_info['package']
 
     assert family == 'ice40' or family == 'xc7'
+    assert board in project_dict['toolchains'][toolchain]['boards']
 
     # some toolchains use signed 32 bit
     assert seed is None or 1 <= seed <= 0x7FFFFFFF
@@ -170,16 +172,37 @@ def run(
     t.seed = seed
     t.carry = carry
 
+    # Initialize FuseSoC library
+    fm = FuseSoCManager()
+    core = project_dict['core']
+    flow = toolchain
+    if 'vivado' in flow or 'xilinx' in flow:
+        flow = 'vivado'
+    elif 'ice' in flow:
+        flow = 'icestorm'
+    else:
+        flow = 'symbiflow'
+    t.flow = flow
+    fm.setup(core, flow, board)
+
     # Constraint files shall be in their directories
-    pcf = get_constraint(
-        project, board, project_dict['toolchains'][toolchain][board], 'pcf'
-    )
-    sdc = get_constraint(
-        project, board, project_dict['toolchains'][toolchain][board], 'sdc'
-    )
-    xdc = get_constraint(
-        project, board, project_dict['toolchains'][toolchain][board], 'xdc'
-    )
+    pcf = None
+    sdc = None
+    xdc = None
+    if 'constraints' in project_dict['toolchains'][toolchain].keys():
+        print(project_dict['toolchains'][toolchain].keys())
+        pcf = get_constraint(
+            project, board,
+            project_dict['toolchains'][toolchain]['constraints'][board], 'pcf'
+        )
+        sdc = get_constraint(
+            project, board,
+            project_dict['toolchains'][toolchain]['constraints'][board], 'sdc'
+        )
+        xdc = get_constraint(
+            project, board,
+            project_dict['toolchains'][toolchain]['constraints'][board], 'xdc'
+        )
 
     # XXX: sloppy path handling here...
     t.pcf = os.path.realpath(pcf) if pcf else None
