@@ -2,6 +2,9 @@
 build
 /build.*
 
+# fusesoc
+.cores
+
 # vpr
 vpr_stdout.log
 
