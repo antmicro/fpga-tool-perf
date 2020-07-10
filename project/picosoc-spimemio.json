@@ -1,19 +1,22 @@
 {
-    "srcs": [
-        "third_party/picorv32/picosoc/spimemio.v",
-        "src/picosoc-spimemio/picosoc_spimemio_wrap.v"
-    ],
+    "core": ":symbiflow:picosoc-spimemio",
     "top": "top",
     "name": "picosoc-spimemio-wrap",
     "toolchains": {
+        "vpr": {
+            "boards": [
+                "basys3"
+            ]
+        },
         "vivado": {
-            "basys3": ["basys3.xdc"]
+            "boards": [
+                "basys3"
+            ]
         },
         "vivado-yosys": {
-            "basys3": ["basys3.xdc"]
-        },
-        "vpr": {
-            "basys3": ["basys3.pcf"]
+            "boards": [
+                "basys3"
+            ]
         }
     }
 }
