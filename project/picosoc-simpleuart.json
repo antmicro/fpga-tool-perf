@@ -1,19 +1,22 @@
 {
-    "srcs": [
-        "third_party/picorv32/picosoc/simpleuart.v",
-        "src/picosoc-simpleuart/picosoc_simpleuart_wrap.v"
-    ],
+    "core": ":symbiflow:picosoc-simpleuart",
     "top": "top",
     "name": "picosoc-simpleuart-wrap",
     "toolchains": {
+        "vpr": {
+            "boards": [
+                "basys3"
+            ]
+        },
         "vivado": {
-            "basys3": ["basys3.xdc"]
+            "boards": [
+                "basys3"
+            ]
         },
         "vivado-yosys": {
-            "basys3": ["basys3.xdc"]
-        },
-        "vpr": {
-            "basys3": ["basys3.pcf"]
+            "boards": [
+                "basys3"
+            ]
         }
     }
 }
