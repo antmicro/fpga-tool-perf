@@ -1,19 +1,22 @@
 {
-    "srcs": [
-        "third_party/vexriscv-verilog/VexRiscv.v",
-        "src/vexriscv/vexriscv-verilog_wrap.v"
-    ],
+    "core": ":symbiflow:vexriscv",
     "top": "top",
     "name": "vexriscv-verilog",
     "toolchains": {
+        "vpr": {
+            "boards": [
+                "basys3"
+            ]
+        },
         "vivado": {
-            "basys3": ["basys3.xdc"]
+            "boards": [
+                "basys3"
+            ]
         },
         "vivado-yosys": {
-            "basys3": ["basys3.xdc"]
-        },
-        "vpr": {
-            "basys3": ["basys3.pcf"]
+            "boards": [
+                "basys3"
+            ]
         }
     }
 }
