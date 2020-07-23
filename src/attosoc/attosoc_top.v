@@ -1,17 +1,9 @@
 module top (input clk_i, input [3:0] sw, output [11:0] led);
 
-    //assign led = {&sw, |sw, ^sw, ~^sw};
-
-    reg clk50 = 1'b0;
-    always @(posedge clk_i)
-        clk50 <= ~clk50;
-
-    wire clk;
-    BUFGCTRL bufg_i (
-        .I0(clk50),
-        .CE0(1'b1),
-        .S0(1'b1),
-        .O(clk)
+    wire clk_bufg;
+    BUFG bufg_i (
+        .I(clk_i),
+        .O(clk_bufg)
     );
 
 
@@ -20,11 +12,11 @@ module top (input clk_i, input [3:0] sw, output [11:0] led);
     reg clkdiv;
     reg [22:0] ctr;
 
-    always @(posedge clk) {clkdiv, ctr} <= ctr + 1'b1;
+    always @(posedge clk_bufg) {clkdiv, ctr} <= ctr + 1'b1;
 
     wire [7:0] soc_led;
     attosoc soc_i(
-        .clk(clk),
+        .clk(clk_bufg),
         .reset(sw[0]),
         .led(soc_led)
     );
