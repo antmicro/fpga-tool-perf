@@ -214,6 +214,17 @@ def run(
     t.write_metadata()
 
 
+def list_project_toolchain_board():
+    table_data = [['Project', 'Toolchain', 'Board']]
+    for project in get_projects():
+        project_dict = get_project(project)
+        for toolchain in project_dict['toolchains']:
+            for board in project_dict['toolchains'][toolchain]:
+                table_data.append([project, toolchain, board])
+
+    table = AsciiTable(table_data)
+    print(table.table)
+
 def get_toolchains():
     '''Query all supported toolchains'''
     return sorted(toolchains.keys())
@@ -364,6 +375,11 @@ def main():
     )
     parser.add_argument('--build', default=None, help='Build number')
     parser.add_argument('--build_type', default=None, help='Build type')
+    parser.add_argument(
+        '--list-available',
+        action='store_true',
+        help='Lists available combinations of <project, toolchain, board>'
+    )
     args = parser.parse_args()
 
     if args.verbose:
@@ -388,6 +404,11 @@ def main():
     elif args.list_seedable:
         logger.debug("Listing Seedables")
         list_seedable()
+    elif args.list_available:
+        logger.debug(
+            "Listing available combinations of <project, toolchain, board>"
+        )
+        list_project_toolchain_board()
     elif args.check_env:
         logger.debug("Checking Environment")
         check_env(args.toolchain)
