@@ -1,0 +1,17 @@
+{
+    "srcs": [
+        "src/rgb2ycrcb/rgb2ycrcb.v",
+        ],
+    "top": "top",
+    "name": "rgb2ycrcb",
+    "clocks": {
+        "clk": 10.0
+    },
+    "toolchains": {
+        "quicklogic": {
+            "chandalar": ["chandalar.pcf"],
+            "quickfeather-dev-board": ["quickfeather-dev-board.pcf"]
+        }
+    },
+    "vendors": ["quicklogic"]
+}

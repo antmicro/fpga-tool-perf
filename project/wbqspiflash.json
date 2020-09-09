@@ -1,0 +1,21 @@
+{
+    "srcs": [
+        "src/wbqspiflash/eqspiflash.v",
+        "src/wbqspiflash/flash_config.v",
+        "src/wbqspiflash/lleqspi.v",
+        "src/wbqspiflash/llqspi.v",
+        "src/wbqspiflash/wbqspiflash.v"
+        ],
+    "top": "top",
+    "name": "wbqspiflash",
+    "clocks": {
+        "clk": 10.0
+    },
+    "toolchains": {
+        "quicklogic": {
+            "chandalar": ["chandalar.pcf"],
+            "quickfeather-dev-board": ["quickfeather-dev-board.pcf"]
+        }
+    },
+    "vendors": ["quicklogic"]
+}
